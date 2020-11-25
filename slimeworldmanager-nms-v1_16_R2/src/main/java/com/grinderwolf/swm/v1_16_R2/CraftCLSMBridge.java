@@ -1,18 +1,19 @@
-package com.grinderwolf.swm.nms.v1_14_R1;
+package com.grinderwolf.swm.v1_16_R2;
 
 import com.grinderwolf.swm.clsm.CLSMBridge;
 import com.grinderwolf.swm.clsm.ClassModifier;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
-import net.minecraft.server.v1_14_R1.Chunk;
-import net.minecraft.server.v1_14_R1.IChunkAccess;
-import net.minecraft.server.v1_14_R1.ProtoChunkExtension;
-import net.minecraft.server.v1_14_R1.WorldServer;
+import net.minecraft.server.v1_16_R2.*;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 @RequiredArgsConstructor(access = AccessLevel.PRIVATE)
 public class CraftCLSMBridge implements CLSMBridge {
 
-    private final v1_14_R1SlimeNMS nmsInstance;
+    private static final Logger LOGGER = LogManager.getLogger("SWM Chunk Loader");
+
+    private final v1_16_R2SlimeNMS nmsInstance;
 
     @Override
     public Object getChunk(Object worldObject, int x, int z) {
@@ -21,7 +22,6 @@ public class CraftCLSMBridge implements CLSMBridge {
         }
 
         CustomWorldServer world = (CustomWorldServer) worldObject;
-
         return world.getChunk(x, z);
     }
 
@@ -43,7 +43,6 @@ public class CraftCLSMBridge implements CLSMBridge {
         } else {
             chunk = (Chunk) chunkAccess;
         }
-
 
         ((CustomWorldServer) world).saveChunk(chunk);
         chunk.setNeedsSaving(false);
@@ -80,7 +79,17 @@ public class CraftCLSMBridge implements CLSMBridge {
         return !worldServer.isReady();
     }
 
-    static void initialize(v1_14_R1SlimeNMS instance) {
+    @Override
+    public Object getDefaultGamemode() {
+        if (nmsInstance.isLoadingDefaultWorlds()) {
+            return ((DedicatedServer) MinecraftServer.getServer()).getDedicatedServerProperties().gamemode;
+        }
+
+        return null;
+    }
+
+    static void initialize(v1_16_R2SlimeNMS instance) {
         ClassModifier.setLoader(new CraftCLSMBridge(instance));
     }
+
 }
