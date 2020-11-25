@@ -6,6 +6,7 @@
 .project
 .settings/
 slimeworldmanager-test/
+paperjars/
 .DS_Store/
 target/
 dependency-reduced-pom.xml
