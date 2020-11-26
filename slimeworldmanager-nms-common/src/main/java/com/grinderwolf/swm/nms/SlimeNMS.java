@@ -8,6 +8,9 @@ public interface SlimeNMS {
 
     void setDefaultWorlds(SlimeWorld normalWorld, SlimeWorld netherWorld, SlimeWorld endWorld);
     void generateWorld(SlimeWorld world);
+    default void generateWorld(SlimeWorld world, boolean loadSpawn) {
+        generateWorld(world);
+    }
 
     default Object createNMSWorld(SlimeWorld world) {
         throw new UnsupportedOperationException("This spigot version does not support async world loading");

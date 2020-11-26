@@ -117,6 +117,11 @@ public class v1_16_R2SlimeNMS implements SlimeNMS {
 
     @Override
     public void generateWorld(SlimeWorld world) {
+        generateWorld(world, true);
+    }
+
+    @Override
+    public void generateWorld(SlimeWorld world, boolean loadSpawn) {
         String worldName = world.getName();
 
         if (Bukkit.getWorld(worldName) != null) {
@@ -155,7 +160,9 @@ public class v1_16_R2SlimeNMS implements SlimeNMS {
         mcServer.worldServer.put(worldKey, server);
 
         Bukkit.getPluginManager().callEvent(new WorldInitEvent(server.getWorld()));
-        mcServer.loadSpawn(server.getChunkProvider().playerChunkMap.worldLoadListener, server);
+        if (loadSpawn) {
+            mcServer.loadSpawn(server.getChunkProvider().playerChunkMap.worldLoadListener, server);
+        }
         Bukkit.getPluginManager().callEvent(new WorldLoadEvent(server.getWorld()));
 
         LOGGER.info("World " + worldName + " loaded in " + (System.currentTimeMillis() - startTime) + "ms.");
