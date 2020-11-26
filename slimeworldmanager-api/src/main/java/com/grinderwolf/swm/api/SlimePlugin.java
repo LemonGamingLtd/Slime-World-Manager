@@ -112,6 +112,15 @@ public interface SlimePlugin {
     void generateWorld(SlimeWorld world);
 
     /**
+     * Generates a Minecraft World from a {@link SlimeWorld} and
+     * adds it to the server's world list.
+     *
+     * @param world {@link SlimeWorld} world to be added to the server's world list
+     * @param loadSpawn if the spawn should be force loaded or not, only relevant on 1.16+
+     */
+    void generateWorld(SlimeWorld world, boolean loadSpawn);
+
+    /**
      * Migrates a {@link SlimeWorld} to another datasource.
      *
      * @param worldName The name of the world to be migrated.

@@ -329,6 +329,11 @@ public class SWMPlugin extends JavaPlugin implements SlimePlugin {
 
     @Override
     public void generateWorld(SlimeWorld world) {
+        generateWorld(world, true);
+    }
+
+    @Override
+    public void generateWorld(SlimeWorld world, boolean loadSpawn) {
         Objects.requireNonNull(world, "SlimeWorld cannot be null");
 
         if (!world.isReadOnly() && !world.isLocked()) {
@@ -343,7 +348,7 @@ public class SWMPlugin extends JavaPlugin implements SlimePlugin {
 
             });
         } else {
-            nms.generateWorld(world);
+            nms.generateWorld(world, loadSpawn);
         }
     }
 
