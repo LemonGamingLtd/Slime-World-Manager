@@ -155,8 +155,6 @@ public class CustomWorldServer extends WorldServer {
         int x = chunk.getX();
         int z = chunk.getZ();
 
-        LOGGER.debug("Loading chunk (" + x + ", " + z + ") on world " + slimeWorld.getName());
-
         ChunkCoordIntPair pos = new ChunkCoordIntPair(x, z);
 
         // Biomes
@@ -172,7 +170,6 @@ public class CustomWorldServer extends WorldServer {
                 (type) -> type == null || type == FluidTypes.EMPTY, pos);
 
         // Chunk sections
-        LOGGER.debug("Loading chunk sections for chunk (" + pos.x + ", " + pos.z + ") on world " + slimeWorld.getName());
         ChunkSection[] sections = new ChunkSection[16];
         LightEngine lightEngine = getChunkProvider().getLightEngine();
 
@@ -183,16 +180,6 @@ public class CustomWorldServer extends WorldServer {
 
             if (slimeSection != null) {
                 ChunkSection section = new ChunkSection(sectionId << 4);
-
-                LOGGER.debug("ChunkSection #" + sectionId + " - Chunk (" + pos.x + ", " + pos.z + ") - World " + slimeWorld.getName() + ":");
-                LOGGER.debug("Block palette:");
-                LOGGER.debug(slimeSection.getPalette().toString());
-                LOGGER.debug("Block states array:");
-                LOGGER.debug(slimeSection.getBlockStates());
-                LOGGER.debug("Block light array:");
-                LOGGER.debug(slimeSection.getBlockLight() != null ? slimeSection.getBlockLight().getBacking() : "Not present");
-                LOGGER.debug("Sky light array:");
-                LOGGER.debug(slimeSection.getSkyLight() != null ? slimeSection.getSkyLight().getBacking() : "Not present");
 
                 section.getBlocks().a((NBTTagList) Converter.convertTag(slimeSection.getPalette()), slimeSection.getBlockStates());
 
@@ -217,7 +204,6 @@ public class CustomWorldServer extends WorldServer {
         Consumer<Chunk> loadEntities = (nmsChunk) -> {
 
             // Load tile entities
-            LOGGER.debug("Loading tile entities for chunk (" + pos.x + ", " + pos.z + ") on world " + slimeWorld.getName());
             List<CompoundTag> tileEntities = chunk.getTileEntities();
             int loadedEntities = 0;
 
@@ -239,10 +225,7 @@ public class CustomWorldServer extends WorldServer {
                 }
             }
 
-            LOGGER.debug("Loaded " + loadedEntities + " tile entities for chunk (" + pos.x + ", " + pos.z + ") on world " + slimeWorld.getName());
-
             // Load entities
-            LOGGER.debug("Loading entities for chunk (" + pos.x + ", " + pos.z + ") on world " + slimeWorld.getName());
             List<CompoundTag> entities = chunk.getEntities();
             loadedEntities = 0;
 
@@ -259,8 +242,6 @@ public class CustomWorldServer extends WorldServer {
                     loadedEntities++;
                 }
             }
-
-            LOGGER.debug("Loaded " + loadedEntities + " entities for chunk (" + pos.x + ", " + pos.z + ") on world " + slimeWorld.getName());
 
         };
 
@@ -285,8 +266,6 @@ public class CustomWorldServer extends WorldServer {
         }
 
         HeightMap.a(nmsChunk, unsetHeightMaps);
-        LOGGER.debug("Loaded chunk (" + pos.x + ", " + pos.z + ") on world " + slimeWorld.getName());
-
         return nmsChunk;
     }
 
