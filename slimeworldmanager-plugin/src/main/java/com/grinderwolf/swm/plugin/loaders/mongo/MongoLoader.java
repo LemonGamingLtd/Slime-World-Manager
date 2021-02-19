@@ -207,7 +207,9 @@ public class MongoLoader extends UpdatableLoader {
             
             // Delete the backup file after we've uploaded the new world.
             // If we're saving worlds frequently, this stacks up and creates a huge mess of the database.
-            bucket.delete(oldFile.getObjectId());
+            if (oldFile != null) {
+                bucket.delete(oldFile.getObjectId());
+            }
 
             MongoCollection<Document> mongoCollection = mongoDatabase.getCollection(collection);
             Document worldDoc = mongoCollection.find(Filters.eq("name", worldName)).first();
