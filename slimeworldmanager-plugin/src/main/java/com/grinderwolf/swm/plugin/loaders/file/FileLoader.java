@@ -19,6 +19,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
+import lombok.Getter;
 
 public class FileLoader implements SlimeLoader {
 
@@ -26,8 +27,15 @@ public class FileLoader implements SlimeLoader {
 
     private final Map<String, RandomAccessFile> worldFiles = new HashMap<>();
     private final File worldDir;
-
+    
+    @Getter
+    private final boolean lockingEnabled;
+    
     public FileLoader(File worldDir) {
+        this(worldDir, true);
+    }
+
+    public FileLoader(File worldDir, boolean lockingEnabled) {
         this.worldDir = worldDir;
 
         if (worldDir.exists() && !worldDir.isDirectory()) {
@@ -36,6 +44,8 @@ public class FileLoader implements SlimeLoader {
         }
 
         worldDir.mkdirs();
+        
+        this.lockingEnabled = lockingEnabled;
     }
 
     @Override
@@ -54,7 +64,7 @@ public class FileLoader implements SlimeLoader {
 
         });
 
-        if (!readOnly) {
+        if (!readOnly && lockingEnabled) {
             FileChannel channel = file.getChannel();
 
             try {
@@ -106,7 +116,7 @@ public class FileLoader implements SlimeLoader {
         worldFile.setLength(0); // Delete old data
         worldFile.write(serializedWorld);
 
-        if (lock) {
+        if (lock && lockingEnabled) {
             FileChannel channel = worldFile.getChannel();
 
             try {
@@ -123,6 +133,7 @@ public class FileLoader implements SlimeLoader {
 
     @Override
     public void unlockWorld(String worldName) throws UnknownWorldException, IOException {
+        if (!lockingEnabled) return;
         if (!worldExists(worldName)) {
             throw new UnknownWorldException(worldName);
         }
@@ -136,6 +147,7 @@ public class FileLoader implements SlimeLoader {
 
     @Override
     public boolean isWorldLocked(String worldName) throws IOException {
+        if (!lockingEnabled) return false;
         RandomAccessFile file = worldFiles.get(worldName);
         boolean closeOnFinish = false;
 

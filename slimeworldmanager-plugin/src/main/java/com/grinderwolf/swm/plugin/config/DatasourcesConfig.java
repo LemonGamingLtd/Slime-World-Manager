@@ -25,6 +25,8 @@ public class DatasourcesConfig {
         @Setting("password") private String password = "";
 
         @Setting("database") private String database = "slimeworldmanager";
+    
+        @Setting("locking_enabled") private boolean lockingEnabled = true;
     }
 
     @Getter
@@ -44,6 +46,8 @@ public class DatasourcesConfig {
         @Setting("collection") private String collection = "worlds";
 
         @Setting("uri") private String uri = "";
+    
+        @Setting("locking_enabled") private boolean lockingEnabled = true;
     }
 
     @Getter
@@ -51,6 +55,8 @@ public class DatasourcesConfig {
     public static class FileConfig {
 
         @Setting("path") private String path = "slime_worlds";
+    
+        @Setting("locking_enabled") private boolean lockingEnabled = true;
 
     }
 }

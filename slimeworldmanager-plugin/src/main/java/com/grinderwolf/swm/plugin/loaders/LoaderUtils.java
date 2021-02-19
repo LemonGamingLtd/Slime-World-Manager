@@ -50,7 +50,7 @@ public class LoaderUtils {
 
         // File loader
         DatasourcesConfig.FileConfig fileConfig = config.getFileConfig();
-        registerLoader("file", new FileLoader(new File(fileConfig.getPath())));
+        registerLoader("file", new FileLoader(new File(fileConfig.getPath()), fileConfig.isLockingEnabled()));
 
         // Mysql loader
         DatasourcesConfig.MysqlConfig mysqlConfig = config.getMysqlConfig();

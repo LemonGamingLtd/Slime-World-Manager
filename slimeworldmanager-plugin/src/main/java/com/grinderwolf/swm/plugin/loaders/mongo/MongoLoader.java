@@ -22,6 +22,7 @@ import com.mongodb.client.model.IndexOptions;
 import com.mongodb.client.model.Indexes;
 import com.mongodb.client.model.Updates;
 import com.mongodb.client.result.UpdateResult;
+import lombok.Getter;
 import org.bson.Document;
 
 import java.io.ByteArrayInputStream;
@@ -47,6 +48,9 @@ public class MongoLoader extends UpdatableLoader {
     private final MongoClient client;
     private final String database;
     private final String collection;
+    
+    @Getter
+    private final boolean lockingEnabled;
 
     public MongoLoader(DatasourcesConfig.MongoDBConfig config) throws MongoException {
         this.database = config.getDatabase();
@@ -62,6 +66,8 @@ public class MongoLoader extends UpdatableLoader {
         MongoCollection<Document> mongoCollection = mongoDatabase.getCollection(collection);
 
         mongoCollection.createIndex(Indexes.ascending("name"), new IndexOptions().unique(true));
+        
+        lockingEnabled = config.isLockingEnabled();
     }
 
     @Override
@@ -118,7 +124,7 @@ public class MongoLoader extends UpdatableLoader {
                 throw new UnknownWorldException(worldName);
             }
 
-            if (!readOnly) {
+            if (!readOnly && lockingEnabled) {
                 long lockedMillis = worldDoc.getLong("locked");
 
                 if (System.currentTimeMillis() - lockedMillis <= LoaderUtils.MAX_LOCK_TIME) {
@@ -139,6 +145,7 @@ public class MongoLoader extends UpdatableLoader {
     }
 
     private void updateLock(String worldName, boolean forceSchedule) {
+        if (!lockingEnabled) return;
         try {
             MongoDatabase mongoDatabase = client.getDatabase(database);
             MongoCollection<Document> mongoCollection = mongoDatabase.getCollection(collection);
@@ -205,7 +212,7 @@ public class MongoLoader extends UpdatableLoader {
             MongoCollection<Document> mongoCollection = mongoDatabase.getCollection(collection);
             Document worldDoc = mongoCollection.find(Filters.eq("name", worldName)).first();
 
-            long lockMillis = lock ? System.currentTimeMillis() : 0L;
+            long lockMillis = (lock && lockingEnabled) ? System.currentTimeMillis() : 0L;
 
             if (worldDoc == null) {
                 mongoCollection.insertOne(new Document().append("name", worldName).append("locked", lockMillis));
@@ -219,6 +226,7 @@ public class MongoLoader extends UpdatableLoader {
 
     @Override
     public void unlockWorld(String worldName) throws IOException, UnknownWorldException {
+        if (!lockingEnabled) return;
         ScheduledFuture future = lockedWorlds.remove(worldName);
 
         if (future != null) {
@@ -240,6 +248,7 @@ public class MongoLoader extends UpdatableLoader {
 
     @Override
     public boolean isWorldLocked(String worldName) throws IOException, UnknownWorldException {
+        if (!lockingEnabled) return false;
         if (lockedWorlds.containsKey(worldName)) {
             return true;
         }

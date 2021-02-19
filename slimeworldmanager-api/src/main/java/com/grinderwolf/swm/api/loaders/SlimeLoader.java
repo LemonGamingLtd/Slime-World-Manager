@@ -83,5 +83,12 @@ public interface SlimeLoader {
      * @throws IOException           if the world could not be deleted.
      */
     void deleteWorld(String worldName) throws UnknownWorldException, IOException;
+    
+    /**
+     * Returns if locking is enabled for this loader
+     *
+     * @return if locking is enabled for this loader
+     */
+    boolean isLockingEnabled();
 
 }

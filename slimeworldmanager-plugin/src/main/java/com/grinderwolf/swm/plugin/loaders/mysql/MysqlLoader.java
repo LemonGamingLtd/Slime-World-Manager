@@ -23,6 +23,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
+import lombok.Getter;
 
 public class MysqlLoader extends UpdatableLoader {
 
@@ -52,6 +53,9 @@ public class MysqlLoader extends UpdatableLoader {
 
     private final Map<String, ScheduledFuture> lockedWorlds = new HashMap<>();
     private final HikariDataSource source;
+    
+    @Getter
+    private final boolean lockingEnabled;
 
     public MysqlLoader(DatasourcesConfig.MysqlConfig config) throws SQLException {
         HikariConfig hikariConfig = new HikariConfig();
@@ -84,6 +88,8 @@ public class MysqlLoader extends UpdatableLoader {
                 statement.execute();
             }
         }
+        
+        lockingEnabled = config.isLockingEnabled();
     }
 
     @Override
@@ -140,7 +146,7 @@ public class MysqlLoader extends UpdatableLoader {
                 throw new UnknownWorldException(worldName);
             }
 
-            if (!readOnly) {
+            if (!readOnly && lockingEnabled) {
                 long lockedMillis = set.getLong("locked");
 
                 if (System.currentTimeMillis() - lockedMillis <= LoaderUtils.MAX_LOCK_TIME) {
@@ -157,6 +163,7 @@ public class MysqlLoader extends UpdatableLoader {
     }
 
     private void updateLock(String worldName, boolean forceSchedule) {
+        if (!lockingEnabled) return;
         try (Connection con = source.getConnection();
              PreparedStatement statement = con.prepareStatement(UPDATE_LOCK_QUERY)) {
             statement.setLong(1, System.currentTimeMillis());
@@ -213,7 +220,7 @@ public class MysqlLoader extends UpdatableLoader {
             statement.setBytes(3, serializedWorld);
             statement.executeUpdate();
 
-            if (lock) {
+            if (lock && lockingEnabled) {
                 updateLock(worldName, true);
             }
         } catch (SQLException ex) {
@@ -223,6 +230,7 @@ public class MysqlLoader extends UpdatableLoader {
 
     @Override
     public void unlockWorld(String worldName) throws IOException, UnknownWorldException {
+        if (!lockingEnabled) return;
         ScheduledFuture future = lockedWorlds.remove(worldName);
 
         if (future != null) {
@@ -244,6 +252,7 @@ public class MysqlLoader extends UpdatableLoader {
 
     @Override
     public boolean isWorldLocked(String worldName) throws IOException, UnknownWorldException {
+        if (!lockingEnabled) return false;
         if (lockedWorlds.containsKey(worldName)) {
             return true;
         }
